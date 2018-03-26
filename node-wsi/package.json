@@ -1,0 +1,22 @@
+{
+  "name": "websignals",
+  "version": "1.0.0",
+  "description": "WebSignals enables to dynamically declare and use Client<>Server communication functionality",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sysaxis/websignals.git"
+  },
+  "author": "sysaxis",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sysaxis/websignals/issues"
+  },
+  "homepage": "https://github.com/sysaxis/websignals#readme",
+  "dependencies": {
+    "ws": "^5.1.0"
+  }
+}

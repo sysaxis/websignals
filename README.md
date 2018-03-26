@@ -1,7 +1,7 @@
 
 # WebSignals 
 
-*Declare Client<>Server communication functionality  on both Client and Server side.*
+*Dynamically declare and use Client <-> Server communication functionality.*
 
 
 #### Features:
@@ -11,6 +11,7 @@
 * Dynamically declarable and callable API logic.
 * Can be used with Promises, callbacks or returns.
 * Built-in authentication mechanism (debatable in practice).
+* Enables parallel messaging.
 
 #### In-development:
 * Automatic reconnection.

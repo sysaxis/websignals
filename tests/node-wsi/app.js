@@ -43,38 +43,6 @@ let wsiInstance = wsi.create(server, {
     modes: ['http', 'websocket']
 });
 
-/*server.on('request', function(req, res) {
-    if (req.url.split('/')[1] === "test2") {
-        
-        res._header = true; // override for finalhandler
-
-        // req.flushHeaders() will send the headers
-
-        var ms = new MemoryStream();
-    
-        ms.readToEnd(function(buffer) {
-            console.log(buffer.toString('utf8'));
-            //res.statusCode = 200;
-            //res.end("Alrite");
-
-            setTimeout(function(res) {
-                res._header = null;
-                res.setHeader('uno', 1);
-                res.end('alrite');
-            }, 5000, res);
-        });
-
-
-        req.on('error', function(err) {
-            ce('request error', err);
-
-            //delete ms;
-        });
-
-        req.pipe(ms);
-    }
-});*/
-
 const qry = module.exports.query = wsiInstance.Qry;
 const def = module.exports.def = wsiInstance.Def;
 

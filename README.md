@@ -29,7 +29,8 @@ let ws = require('websignals');
 
 // Attach websignals to a server.
 let wsi = ws.create(server, {
-    onAuth:  function(cid, auth, cb) { // optional
+	onAuth:  function(cid, auth, cb) { // optional
+		// auth object will contain any properties passed by the client in connection query
         if (auth.token === '123') cb({
             user: 'Joe',
             acl: 'admin'
@@ -37,6 +38,9 @@ let wsi = ws.create(server, {
     },
     onClient: function(cid, auth) { // optional
         console.log('new connection', cid, auth.user);
+    },
+    onClientClosed: function(cid, auth) { // optional
+        console.log('closed connection', cid, auth.user);
     },
     path: '/wsi',
     modes: ['http', 'websocket'] // optional (defaults to websocket)
@@ -66,15 +70,19 @@ wsi.init({
 	secure: false, // if secure connetions should be used (optional, defaults to false)
 	host: 'localhost:8080', // this is also the default value
 	path: '/wsi',
-    query: { // authentication query
+    query: { // authentication query (this will be mapped to the auth object in server's onAuth callback)
         user: 10,
         token: '123'
     },
-    mode: "websocket" // options: "websocket", "http", defaults to "websocket"
+	mode: "websocket", // options: "websocket", "http", defaults to "websocket",
+	onconnect: function(error) { } // (optional) will be called once connection succeeded or failed
 });
 
 var Def = wsi.Def;
 var Qry = wsi.Qry;
+
+// to forcefully terminate the connection call
+wsi.disconnect();
 ```
 ## Making API calls
 ```javascript
@@ -91,15 +99,28 @@ Qry().node1("var1", 2).node2("var21", {}).$({cid: "connection id"}, function(err
 Qry().node1("var1", 2).node2("var21", {}).$(function(err, res) { });
 ```
 ## Declaring endpoints
+Client-side endpoint handlers accept up to two arguments: _ (args object) and *callback*.
+Server-side endpoint handlers accept *auth* as a second argument and *callback* as third.
+The argument *auth* is used when making server -> client calls.
+
 ```javascript
+// Simple client side endpoint.
 wsi.Def.BEEP().$ = function(_, callback) { };
-// Same as above.
+// Shorthand version when you don't need to specify parameters on the last node.
 wsi.Def.BEEP = () => { };
+
+// Server side
+wsi.Def.BEEP().$ = function(_, auth, callback) { };
 
 // Endpoint with predefined arguments.
 wsi.Def.when("time", ".If").$ = function(_) {
 	var a = _.time;
 	var b = _.whenIf;
+}
+
+// Echo messages (server) to specific client endpoint.
+wsi.Def.echo("message").$ = function(_, auth) {
+	wsi.Qry().echos(_.message).$(auth, function(err, res) { });
 }
 
 // Define a passthrough function.

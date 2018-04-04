@@ -13,13 +13,7 @@
 
     var isDebug = false;
     var log = console.log;
-
-    var wscl = {
-        req: function noop() {},
-        qry: function noop(a, cb) { cb(); },
-        onconnect: function noop() {}
-    };
-
+    var connectionType = "ws";
     var messages = [];
 
     function debug() {
@@ -42,6 +36,16 @@
         ws: function noop() {},
         http: function noop() {}
     }
+
+    var wscl = {
+        req: function noop() {},
+        qry: function noop(a, cb) { cb(); },
+        onconnect: function noop() {},
+        ondisconnect: function noop() {},
+        disconnect: function() {
+            disconnect[connectionType]();
+        }
+    };
 
     wscl.reconnect = function(type) {
         
@@ -82,7 +86,13 @@
             if (id) xhr.setRequestHeader("id", id);
 
             xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 400 && xhr.responseText === "DSC") {
+                    cb(null);
+                    delXhr(xhr);
+                    return;
+                }
                 if (xhr.readyState !== XMLHttpRequest.DONE || xhr.status !== 200) return;
+                
                 var rid = xhr.getResponseHeader("id");
                 cb(xhr.responseText, rid);
                 delXhr(xhr);
@@ -99,7 +109,11 @@
 
         var receiveNext = function() {
             httpreq("GET", undefined, undefined, function(body, id) {
-                if (!body) return; // ends the loop
+                if (!body) {
+                    // ends the loop
+                    wscl.ondisconnect();
+                    return;
+                }
                 receiveNext();
 
                 if (body === "BEEP") return; // keep-alive operation
@@ -135,6 +149,7 @@
                 httpreq("POST", null, null, function(body, id) {
                     if (!body) {
                         debug("authentication unsuccessful");
+                        wscl.onconnect({error: "unauthorized"});
                         return;
                     }
                     session = body;
@@ -208,9 +223,21 @@
         function init(cb) {
             socket.close();
             socket = new WebSocket(url);
-            socket.onopen = function() { cb(); wscl.onconnect(); };
+            socket._opening = true;
+            socket.onopen = function() {
+                socket._opening = false;
+                cb(); wscl.onconnect();
+            };
             socket.onmessage = messageHandler;
-            socket.onclose = function() { debug('socket closed'); };
+            socket.onclose = function(ev) { 
+                debug('socket closed');
+                if (socket._opening) {
+                    socket._opening = false;
+                    wscl.onconnect({error: "unauthorized"});
+                    return;
+                }
+                wscl.ondisconnect();
+            };
             errorHandler(cb);
         }
 
@@ -266,6 +293,11 @@
         isDebug = opts.debug || false;
         log = opts.log || console.log;
 
+        if (typeof(opts.onconnect) === "function")
+            wscl.onconnect = opts.onconnect;
+
+        if (typeof(opts.ondisconnect) === "function")
+            wscl.ondisconnect = opts.ondisconnect;
 
         if (opts.path && opts.path.length && opts.path[0] !== '/')
             throw new Error('Path must begin with "/"');
@@ -274,8 +306,10 @@
         createWebSocket(host, path, qs, secure);
 
         if (!window.WebSocket || opts.mode === "http") {
+            connectionType = "http";
             reconnect.http();
         } else {
+            connectionType = "ws";
             reconnect.ws();
         }
     };

@@ -24,13 +24,15 @@ const connections = {};
  * Provide for additional authentication during handshake. Return nothing if unauthorized.
  * function(params<object>) { return auth<object> }
  * @param {function} [param1.onError] Handler for errors.
+ * @param {function} [param1.onClient] Callback for client connections
+ * @param {function} [param1.onClientClosed] Callback for client disconnections. 
  * @param {*} [param1.log] Bunyan logger.
  * @param {Array<string>} param1.modes List of wscl modes from ("websocket", "http"). Defaults to "websocket".
- * @returns {{querer, onQuery, onError, onAuth, onClient, log}} returns the passed options + querer function to be used when making calls to a specific client.
+ * @returns {{querer, onQuery, onError, onAuth, onClient, onClientClosed, log}} returns the passed options + querer function to be used when making calls to a specific client.
  */
 function init(server, {
     querer,
-    onQuery, onError, onAuth, onClient,
+    onQuery, onError, onAuth, onClient, onClientClosed,
     log, path, modes }) {
 
     if (!server) throw new Error("HTTP server must be specified");
@@ -98,7 +100,7 @@ function init(server, {
                 verifyClient: function({origin, req, secure}, cb) {
                     authorize(req, function(authorized) {
                         if (authorized) return cb(true);
-                        else cb(false, 401);
+                        else cb(false, 401, "unauthorized");
                     });
                 }
             });
@@ -150,6 +152,7 @@ function init(server, {
 
                 ws.on('close', function() {
                     connection._isAlive = false;
+                    processDisconnect(connection);
                 });
 
                 processConnection(connection, req);
@@ -249,7 +252,7 @@ function init(server, {
                             // disconnect http looper querer
                             var res = connection.queueResponder;
                             if (res) {
-                                httpResponse(res, 400, "connection closed");
+                                httpResponse(res, 400, "DSC");
                             }
                         }
 
@@ -286,6 +289,13 @@ function init(server, {
                             req.connection.on('timeout', function() {
                                 connection._isAlive = false;
                                 connection.queueResponder = null;
+                                processDisconnect(connection);
+                            });
+
+                            req.connection.on('close', function() {
+                                connection._isAlive = false;
+                                connection.queueResponder = null;
+                                processDisconnect(connection);
                             });
 
                             connection._lastTicks = +(new Date());
@@ -356,6 +366,10 @@ function init(server, {
         startPingLoop(connection);
     }
 
+    function processDisconnect(connection) {
+        if (onClientClosed) onClientClosed(connection.cid, connection.auth);
+    }
+
     /**
      * Processes message from a given connection
      */
@@ -419,7 +433,7 @@ function init(server, {
         const looper = setInterval(function(connection) {
             return process.nextTick(function(connection) {
                 if (!connection._isAlive) {
-                    onConnectionLost(connection);
+                    processDisconnect(connection);
                     clearInterval(looper);
                     return;
                 }
@@ -434,10 +448,6 @@ function init(server, {
             }, connection);
         }, keepAliveInterval, connection);
 
-    }
-
-    function onConnectionLost(connection) {
-        cl('connection lost ' + connection.cid);
     }
 
     /**

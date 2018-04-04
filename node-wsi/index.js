@@ -137,7 +137,8 @@ function create(server, options) {
                     return fnCb(result);
                 }
 
-                return cb({error: 'Invalid function'});
+                if (callable.length < 3)
+                    return cb({error: 'Invalid function'});
             }
         }
 

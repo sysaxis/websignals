@@ -39,9 +39,12 @@
             path:   opts.path   || '/',
             query:  opts.query  || {},
             debug:  opts.debug  || false,
-            mode:   opts.mode   || null
+            mode:   opts.mode   || null,
+            onconnect:  opts.onconnect
         });
     }
+
+    wsi.disconnect = window.wscl.disconnect;
 
     const wscl = window.wscl;
 
@@ -186,7 +189,8 @@
                     return fnCb(result);
                 }
 
-                return cb({error: 'Invalid function'});
+                if (callable.length < 2)
+                    return cb({error: 'Invalid function'});
             }
         }
 

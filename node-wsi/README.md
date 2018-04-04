@@ -7,7 +7,7 @@
 #### Features:
 * Supports both WebSocket and HTTP.
 * Can be used in parallel with express.
-* Built -n keep-alive system.
+* Built in keep-alive system.
 * Dynamically declarable and callable API logic.
 * Can be used with Promises, callbacks or returns.
 * Built-in authentication mechanism (debatable in practice).
@@ -61,10 +61,11 @@ wsi.Qry().areYouThere().$({cid: "connection id"}, function(err, res) {
 ```
 ## Usage (web)
 ```javascript
-// Once websignals.js has been attached to window...
+// Once [websignals.js](https://github.com/sysaxis/websignals/blob/master/js-wsi/websignals.js) has been attached to window...
 wsi.init({
-    http: 80, // defaults to 8080
-    path: '/wsi',
+	secure: false, // if secure connetions should be used (optional, defaults to false)
+	host: 'localhost:8080', // this is also the default value
+	path: '/wsi',
     query: { // authentication query
         user: 10,
         token: '123'

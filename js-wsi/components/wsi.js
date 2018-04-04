@@ -34,11 +34,11 @@
         createLogger(opts.logger, opts.loglevel, log);
 
         window.wscl.init({
-            http:   opts.http   || 80,
-            ws:     opts.ws     || 8080,
-            debug:  opts.debug  || false,
+            secure: opts.secure || false,
+            host:   opts.host   || null,
             path:   opts.path   || '/',
             query:  opts.query  || {},
+            debug:  opts.debug  || false,
             mode:   opts.mode   || null
         });
     }

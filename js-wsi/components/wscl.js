@@ -57,9 +57,9 @@
     };
 
     // http implementation (if ws not available)
-    function createHttp(port, path, qs) {
+    function createHttp(host, path, qs, secure) {
         // http implementation
-        var url = "http://localhost:" + port + (path || "/") + (qs || "");
+        var url = (secure ? 'https://' : 'http://') + host + path + (qs || "");
 
         debug("using http");
 
@@ -153,10 +153,10 @@
     };
 
     // websocket implementation (default)
-    function createWebSocket(port, path, qs) {
+    function createWebSocket(host, path, qs, secure) {
         if (!window.WebSocket) return;
 
-        var url = "ws://localhost:" + port + (path || "/") + (qs || "");
+        var url = (secure ? 'wss://' : 'ws://') + host + path + (qs || "");
 
         debug("using websocket");
 
@@ -254,14 +254,15 @@
     };
 
     wscl.init = function (opts) {
-        var port, path, qs;
+        var host, path, qs, secure;
         
-        port = opts.port || defaultPort;
-        path = opts.path || "";
+        host = opts.host || ("localhost:" + defaultPort);
+        path = opts.path || defaultPort;
         qs = opts.query ? ('?' + Object.keys(opts.query).map(
             function(k) { 
                 return encodeURIComponent(k) + '=' + encodeURIComponent(opts.query[k]);
-            }).join('&')) : ''
+            }).join('&')) : '';
+        secure = opts.secure || false;
         isDebug = opts.debug || false;
         log = opts.log || console.log;
 
@@ -269,8 +270,8 @@
         if (opts.path && opts.path.length && opts.path[0] !== '/')
             throw new Error('Path must begin with "/"');
 
-        createHttp(port, path, qs);
-        createWebSocket(port, path, qs);
+        createHttp(host, path, qs, secure);
+        createWebSocket(host, path, qs, secure);
 
         if (!window.WebSocket || opts.mode === "http") {
             reconnect.http();

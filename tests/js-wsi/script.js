@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     wsi.init({
         debug: true,
-        port: 8080,
+        host: 'localhost:8080',
         path: '/wsi',
         query: {
             user: 10,

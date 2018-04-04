@@ -157,3 +157,8 @@ server.listen(port, function() {
  * wsi.Qry().product(0).sub(null, {name: "microwave", price: 200}).$add().$(console.log)
  * 
  */
+
+ /**
+  * https://blog.jayway.com/2015/04/13/600k-concurrent-websocket-connections-on-aws-using-node-js/
+node --nouse-idle-notification--expose-gc--max-new-space-size=2048--max-old-space-size=8192
+  */

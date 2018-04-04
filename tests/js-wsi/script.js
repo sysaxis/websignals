@@ -11,7 +11,11 @@ document.addEventListener('DOMContentLoaded', function() {
             user: 10,
             token: '123'
         },
-        mode: "websocket"
+        mode: "http",
+        onconnect: function(err) {
+            if (err) console.log(err);
+            else console.log('connected');
+        }
     });
 
     var def = wsi.Def;

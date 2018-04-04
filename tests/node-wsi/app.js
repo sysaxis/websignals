@@ -38,6 +38,9 @@ let wsiInstance = wsi.create(server, {
         console.log('new connection', cid, auth.user);
         clid1 = cid;
     },
+    onClientClosed: function(cid, auth) {
+        console.log('closed connection', cid, auth.user);
+    },
     path: '/wsi',
     loglevel: 10,
     modes: ['http', 'websocket']

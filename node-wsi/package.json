@@ -1,6 +1,6 @@
 {
   "name": "websignals",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "WebSignals enables to dynamically declare and use Client<>Server communication functionality",
   "main": "index.js",
   "scripts": {

@@ -25,7 +25,7 @@ let express = require('express');
 let app = express();
 let server = http.createServer(app); // or aquire server somehow
 
-let ws = require('websignals');
+let ws = require('websignals/node-wsi');
 
 // Attach websignals to a server.
 let wsi = ws.create(server, {
@@ -64,8 +64,9 @@ wsi.Qry().areYouThere().$({cid: "connection id"}, function(err, res) {
 });
 ```
 ## Usage (web)
-Once [websignals.js](https://github.com/sysaxis/websignals/blob/master/js-wsi/websignals.js) has been attached to window...
 ```javascript
+const wsi = require('websignals/js-wsi');
+
 wsi.init({
 	secure: false, // if secure connetions should be used (optional, defaults to false)
 	host: 'localhost:8080', // this is also the default value
